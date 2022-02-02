@@ -5,8 +5,12 @@ const fs = require('fs');
 function filterDict(dict, validChars) {
   let reString = `${validChars.join('')}`;
   let rexp = new RegExp(reString, 'g');
+  const ret = dict.join('\n').match(rexp);
+  if (ret === null) {
+    throw "ERROR: No valid words remaining.";
+  }
 
-  return dict.join('\n').match(rexp);
+  return ret;
 }
 
 function scoreWord(word, letterFrequencies) {
