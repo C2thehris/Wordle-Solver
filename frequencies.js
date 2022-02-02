@@ -16,7 +16,7 @@ function calculateFrequencies(words) {
   let total = 0;
   const frequency_table = new Map();
   populateTable(frequency_table);
-  words.split('\n').forEach((word) => {
+  words.forEach((word) => {
     total += word.length;
     word.split('').forEach((char) => {
       frequency_table.set(char, frequency_table.get(char) + 1);
