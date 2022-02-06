@@ -5,7 +5,7 @@ function populateTable(map) {
 }
 
 function assertTotal(frequency_table) {
-  total = 0.0;
+  let total = 0.0;
   frequency_table.forEach((value, key) => {
     total += value;
   });

@@ -2,17 +2,6 @@ const prompt = require('prompt-sync')({ sigint: true });
 const frequencies = require('./frequencies');
 const fs = require('fs');
 
-function filterDict(dict, validChars) {
-  let reString = `${validChars.join('')}`;
-  let rexp = new RegExp(reString, 'g');
-  const ret = dict.join('\n').match(rexp);
-  if (ret === null) {
-    throw "ERROR: No valid words remaining.";
-  }
-
-  return ret;
-}
-
 function scoreWord(word, letterFrequencies) {
   let score = 0.0;
   for (let i = 0; i < 26; i += 1) {
@@ -26,6 +15,9 @@ function scoreWord(word, letterFrequencies) {
 
 function bestFromDict(dict, letterFrequencies) {
   let best = '';
+  if (dict.length === 0) {
+    throw 'No words in dict';
+  }
   let bestScore = 0;
   dict.forEach((word) => {
     const score = scoreWord(word, letterFrequencies);
@@ -38,47 +30,35 @@ function bestFromDict(dict, letterFrequencies) {
   return best;
 }
 
-function removeInvalid(charSet, char) {
-  let index = charSet.indexOf(char);
-  let ret;
-  if (index !== -1) {
-    ret = charSet.substr(0, index).concat(charSet.substr(index + 1));
-  } else {
-    ret = charSet;
-  }
-  return ret;
-}
-
-function updateValid(validChars, guess, colors) {
+function updateValid(dict, guess, colors) {
+  let next = dict;
   for (let i = 0; i < 5; i += 1) {
     switch (colors[i]) {
       case 'b':
-        for (let j = 0; j < 5; j += 1) {
-          validChars[j] = removeInvalid(validChars[j], guess[i]);
-        }
+        next = next.filter((word) => (word.indexOf(guess[i]) == -1));
         break;
       case 'g':
-        validChars[i] = guess[i];
+        next = next.filter((word) => word.indexOf(guess[i]) !== -1);
         break;
       case 'y':
-        validChars[i] = removeInvalid(validChars[i], guess[i]);
+        next = next.filter((word) => {
+          let pos = word.indexOf(guess[i]);
+          return pos !== i && pos !== -1;
+        });
         break;
       default:
         throw 'Unkown Color in Color string';
     }
   }
+
+  return next;
 }
 
 function playGame(words) {
   let win = false;
-  const validChars = [];
-  for (let i = 0; i < 5; i += 1) {
-    validChars.push('[abcdefghijklmnopqrstuvwxyz]');
-  }
 
   let dict = words;
   for (let i = 0; i < 6 && !win; i += 1) {
-    dict = filterDict(dict, validChars);
     let letterFrequencies = frequencies.calculateFrequencies(dict);
     const best = bestFromDict(dict, letterFrequencies);
     console.log(`Recommended Guess: ${best}`);
@@ -89,11 +69,11 @@ function playGame(words) {
       win = true;
       console.log(`Yay! You win.\nRequired Guesses: ${i + 1}`);
     } else {
-      updateValid(validChars, guess, colors);
+      dict = updateValid(dict, guess, colors);
     }
   }
   if (!win) {
-    console.log(`You lose :(\n The bot is not yet perfect.)`);
+    console.log(`You lose :(\n (The bot is not yet perfect.)`);
   }
   console.log('Play again tomorrow!');
 }
