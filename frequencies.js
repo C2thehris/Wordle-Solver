@@ -4,29 +4,45 @@ function populateTable(map) {
   }
 }
 
-function assertTotal(frequency_table) {
-  let total = 0.0;
-  frequency_table.forEach((value, key) => {
-    total += value;
+function incrementFrequency(frequencies, char) {
+  if (frequencies.has(char)) {
+    frequencies.set(char, frequencies.get(char) + 1);
+  } else {
+    frequencies.set(char, 1);
+  }
+}
+
+function wordFrequencies(word) {
+  const frequencies = new Map();
+
+  word.split().forEach((char) => {
+    if (frequencies.has(char)) {
+      frequencies.set(char, frequencies.get(char) + 1);
+    } else {
+      frequencies.set(char, 1);
+    }
   });
-  console.assert(total === 1.0);
+
+  return frequencies;
 }
 
 function calculateFrequencies(words) {
   let total = 0;
-  const frequency_table = new Map();
-  populateTable(frequency_table);
+  const frequencyTable = new Map();
+  populateTable(frequencyTable);
   words.forEach((word) => {
     total += word.length;
     word.split('').forEach((char) => {
-      frequency_table.set(char, frequency_table.get(char) + 1);
+      frequencyTable.set(char, frequencyTable.get(char) + 1);
     });
   });
-  frequency_table.forEach((value, key, map) => {
+  frequencyTable.forEach((value, key, map) => {
     map.set(key, value / total);
   });
 
-  return frequency_table;
+  return frequencyTable;
 }
 
 exports.calculateFrequencies = calculateFrequencies;
+exports.wordFrequencies = wordFrequencies;
+exports.incrementFrequency = incrementFrequency;
