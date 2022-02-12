@@ -2,7 +2,7 @@ const prompt = require('prompt-sync')({ sigint: true });
 const fs = require('fs');
 const frequencies = require('./frequencies');
 
-const test = 1;
+const test = 0;
 
 function scoreWord(word, letterFrequencies) {
   let score = 0.0;
@@ -141,26 +141,48 @@ function playAutomatic(dict, word) {
   return i;
 }
 
-function testWords(solutions, permitted) {
-  const table = new Map();
+function printStats(table) {
+  let min = Infinity;
+  let max = 0;
   let total = 0;
-
-  solutions.forEach((word) => {
-    const requiredAttemps = playAutomatic(permitted, word);
-    table.set(word, requiredAttemps);
-    total += requiredAttemps;
+  table.forEach((value) => {
+    max = Math.max(max, value);
+    min = Math.min(min, value);
+    total += value;
   });
 
-  console.log(`Average Guesses Required: ${total / solutions.length}`);
+  const expectation = total / table.size;
+  let variance = 0;
+  table.forEach((value) => {
+    variance += Math.pow(value - expectation, 2);
+  });
+  variance /= table.size;
+
+  console.log(`Printing stats\nAverage: ${expectation}\nVariance: ${variance}\nMax: ${max}\nMin: ${min}`);
+
+}
+
+function testWords(solutions, permitted) {
+  const table = new Map();
+
+  solutions.forEach((word) => {
+    if (word === 'ultra') {
+      console.log('hi');
+    }
+    const requiredAttemps = playAutomatic(permitted, word);
+    table.set(word, requiredAttemps);
+  });
+
+  printStats(table);
 }
 
 if (fs.existsSync('words.txt')) {
   fs.readFile('words.txt', 'ascii', (err1, data1) => {
     const solutions = data1.split('\n');
     if (test) {
-      fs.readFile('allowed_words.txt', 'ascii', (err2, data2) => {
+      fs.readFile('words.txt', 'ascii', (err2, data2) => {
         const permitted = [...data2.split('\n'), ...solutions].sort();
-        testWords(solutions, permitted);
+        testWords(solutions, solutions);
       })
     } else {
       playGame(solutions);
